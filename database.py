@@ -13,6 +13,15 @@ db_config = {
     'database': 'aias'
 }
 
+    # Database connection parameters
+# db_config = {
+#         'user': 'root',
+#         'password': '',
+#         'host': 'localhost',
+#         'port': '3306',
+#         'database': 'characternode'
+#     }
+
 async def insert_user_prompt(user_id, character_name, gender, backstory, greeting, character_type, voice_name):
     # Auto-generate character_id
     character_id = str(uuid.uuid4())

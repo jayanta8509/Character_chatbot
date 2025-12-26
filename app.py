@@ -26,7 +26,7 @@ load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
 quart_app = Quart(__name__)
-quart_app = cors(quart_app)
+quart_app = cors(quart_app, allow_origin="*", allow_headers="*", allow_methods="*")
 
 # ##Local server ollama
 # model = ChatOllama(
