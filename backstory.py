@@ -16,6 +16,9 @@ from werkzeug.exceptions import BadRequest
 from asyncio import TimeoutError
 from langchain_ollama import ChatOllama
 import random
+from dotenv import load_dotenv
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 
 # #Local server ollama

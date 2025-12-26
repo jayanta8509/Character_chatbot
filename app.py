@@ -21,6 +21,9 @@ import audio
 import time
 from pathlib import Path
 import voice
+from dotenv import load_dotenv
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 quart_app = Quart(__name__)
 quart_app = cors(quart_app)
@@ -822,4 +825,4 @@ async def serve_audio(filename):
     return response
 
 if __name__ == '__main__':
-    quart_app.run(debug=True)
+    quart_app.run(debug=True, port=8056)

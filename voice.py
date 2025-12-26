@@ -13,6 +13,10 @@ from werkzeug.exceptions import BadRequest
 from asyncio import TimeoutError
 from langchain_ollama import ChatOllama
 
+from dotenv import load_dotenv
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
 # model = ChatOllama(
 #     model="dolphin-mistral:7b",
 #     base_url="https://h3z78w4owudgje-11434.proxy.runpod.net/",
