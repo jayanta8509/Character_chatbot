@@ -6,12 +6,12 @@ import asyncio
 
 
 db_config = {
-        'user': 'root',
-        'password': '',
-        'host': 'localhost',
-        'port': '3306',
-        'database': 'characternode'
-    }
+    'user': 'aias',
+    'password': 'slick50!',
+    'host': 'localhost',
+    'port': '3306',
+    'database': 'aias'
+}
 
 async def insert_user_prompt(user_id, character_name, gender, backstory, greeting, character_type, voice_name):
     # Auto-generate character_id
