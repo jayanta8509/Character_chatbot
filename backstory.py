@@ -30,20 +30,22 @@ import random
 
 
 
-## runpoad server ollama
-model = ChatOllama(
-    model="dolphin-mistral:7b",
-    base_url="https://h3z78w4owudgje-11434.proxy.runpod.net/",
-    temperature=0.7,
-     max_tokens=150,
-    top_k=40,        # Controls diversity by limiting to top 40 token choices
-    top_p=0.9,  
-    headers={
-        "Content-Type": "application/json",
-        # Add other headers if needed, for example:
-        # "Authorization": "Bearer YOUR_API_KEY"
-    }
-)
+# ## runpoad server ollama
+# model = ChatOllama(
+#     model="dolphin-mistral:7b",
+#     base_url="https://h3z78w4owudgje-11434.proxy.runpod.net/",
+#     temperature=0.7,
+#      max_tokens=150,
+#     top_k=40,        # Controls diversity by limiting to top 40 token choices
+#     top_p=0.9,  
+#     headers={
+#         "Content-Type": "application/json",
+#         # Add other headers if needed, for example:
+#         # "Authorization": "Bearer YOUR_API_KEY"
+#     }
+# )
+
+model = init_chat_model("gpt-4o-mini-2024-07-18", model_provider="openai")
 
 class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
