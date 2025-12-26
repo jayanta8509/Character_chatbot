@@ -1,52 +1,48 @@
 from pathlib import Path
-from openai import OpenAI
+from openai import AsyncOpenAI
 import os
+import asyncio
 from dotenv import load_dotenv
+import time
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI()
-# speech_file_path = Path(__file__).parent / "speech.mp3"
-# response = client.audio.speech.create(
-#     model="tts-1",
-#     voice="alloy",
-#     input="Today is a wonderful day to build something people love!",
-# )
-# response.stream_to_file(speech_file_path)
-
-
-# from flask import Flask, send_file
-
-
-# def get_audio(path):
-#     with open(path, "rb") as f:
-#         audio_data = f.read()
-#         return audio_data
-
-
-# audio2 = 'speech.mp3'
-
-# hits = get_audio(audio2)
-# print(hits)
-
-from openai import AsyncOpenAI
 client = AsyncOpenAI()
 
-async def generate(text,voicec):
-        response = await client.audio.speech.create(
-            model="tts-1",
-            # voice="alloy",
-            voice=voicec,
-            input=text
-        )
-        
-        # Use a regular for loop instead of async for
-        for chunk in response.iter_bytes(chunk_size=4096):
-            print("hiy : ",chunk)
-            yield chunk
+async def generate_voice(unic_user_id, text, voice_choice):
+    # Create audio directory if it doesn't exist
+    audio_dir = Path(__file__).parent / "audio"
+    audio_dir.mkdir(exist_ok=True)
+    
+    # Create consistent filename for each user ID
+    # This will overwrite the previous file for the same user
+    speech_file_path = audio_dir / f"{unic_user_id}_speech.mp3"
+    
+    # Use with_streaming_response as recommended
+    async with client.audio.speech.with_streaming_response.create(
+        model="tts-1",
+        voice=voice_choice,
+        input=text,
+    ) as response:
+        # Save the streaming response to a file
+        with open(speech_file_path, "wb") as file:
+            async for chunk in response.iter_bytes():
+                file.write(chunk)
+    
+    return str(speech_file_path)
 
 
-# voice = "alloy"
-# gh = "HI i am bb"
-# p= generate(gh,voice)
-# print(p)
+async def transcribe_audio(file_path):
+    """
+    Transcribe an audio file to text using OpenAI's Whisper model
+    """
+    try:
+        with open(file_path, "rb") as audio_file:
+            transcript = await client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
+        return transcript.text
+    except Exception as e:
+        print(f"Error in transcription: {e}")
+        return None

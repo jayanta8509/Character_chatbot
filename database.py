@@ -3,18 +3,19 @@ from mysql.connector import Error
 import uuid
 import asyncio
 
-async def insert_user_prompt(user_id, character_name, gender, backstory, greeting, character_type, voice_name):
-    # Auto-generate character_id
-    character_id = str(uuid.uuid4())
 
-    # Database connection parameters
-    db_config = {
+
+db_config = {
         'user': 'root',
         'password': '',
         'host': 'localhost',
         'port': '3306',
         'database': 'characternode'
     }
+
+async def insert_user_prompt(user_id, character_name, gender, backstory, greeting, character_type, voice_name):
+    # Auto-generate character_id
+    character_id = str(uuid.uuid4())
 
     # SQL query
     query = """
@@ -53,13 +54,6 @@ async def insert_user_prompt(user_id, character_name, gender, backstory, greetin
 
 
 async def get_character_info(character_id):
-    db_config = {
-        'user': 'root',
-        'password': '',
-        'host': 'localhost',
-        'port': '3306',
-        'database': 'characternode'
-    }
 
     query = """
     SELECT character_name, gender, background_story, character_greeting, type
@@ -97,15 +91,6 @@ async def insert_user_ai_message(user_id, character_id, user_message, ai_message
     user_message_id = f"User_message_{str(uuid.uuid4())}"
     ai_message_id = f"AI_message_{str(uuid.uuid4())}"
 
-    # Database connection parameters
-    db_config = {
-        'user': 'root',
-        'password': '',
-        'host': 'localhost',
-        'port': '3306',
-        'database': 'characternode'
-    }
-
     # SQL query
     query = """
     INSERT INTO user_ai_message_info 
@@ -135,3 +120,183 @@ async def insert_user_ai_message(user_id, character_id, user_message, ai_message
 
 
 
+
+
+async def insert_group_ai_message(user_id, group_id, character_id, user_message, ai_message):
+    user_message_id = f"User_message_{str(uuid.uuid4())}"
+    ai_message_id = f"AI_message_{str(uuid.uuid4())}"
+
+    # SQL query
+    query = """
+    INSERT INTO group_ai_message_info 
+    (user_id, group_id, character_id, user_message_id, ai_message_id, user_message, ai_message)
+    VALUES 
+    (%s, %s, %s, %s, %s, %s, %s)
+    """
+
+    def db_operation():
+        try:
+            connection = mysql.connector.connect(**db_config)
+            if connection.is_connected():
+                cursor = connection.cursor()
+                cursor.execute(query, (user_id, group_id, character_id, user_message_id, ai_message_id, user_message, ai_message))
+                connection.commit()
+        except Error as e:
+            print(f"Error: {e}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    # Run the database operation in a separate thread
+    await asyncio.to_thread(db_operation)
+
+    return ai_message_id
+
+
+
+async def insert_create_group(group_name, created_by_user_id):
+    # SQL query
+    insert_query = """
+    INSERT INTO groups (name, created_by) VALUES (%s, %s)
+    """
+    select_query = "SELECT LAST_INSERT_ID()"
+
+    try:
+        # Establish a database connection
+        connection = mysql.connector.connect(**db_config)
+
+        if connection.is_connected():
+            cursor = connection.cursor()
+
+            # Execute the insert query with parameters
+            cursor.execute(insert_query, (group_name, created_by_user_id))
+
+            # Commit the changes
+            connection.commit()
+
+            # Get the last inserted ID
+            cursor.execute(select_query)
+            group_id = cursor.fetchone()[0]
+
+            return group_id
+
+    except Error as e:
+        print(f"Error: {e}")
+        return None
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# grou_name = "enjoye"
+
+# created_by_user_id =1
+
+# d =  insert_create_group(grou_name, created_by_user_id)
+# print(d)
+
+async def add_characters_to_group(group_id, character_ids):
+    # SQL query
+    query = """
+    INSERT INTO group_characters (group_id, character_id) 
+    VALUES (%s, %s)
+    ON DUPLICATE KEY UPDATE group_id=group_id
+    """
+
+    try:
+        # Establish a database connection
+        connection = mysql.connector.connect(**db_config)
+
+        if connection.is_connected():
+            cursor = connection.cursor()
+
+            # Execute the query for each character_id
+            for character_id in character_ids:
+                cursor.execute(query, (group_id, character_id))
+
+            # Commit the changes
+            connection.commit()
+
+            # Return the number of rows affected
+            return cursor.rowcount
+
+    except Error as e:
+        print(f"Error: {e}")
+        return None
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+# grou_id = 1
+
+# character_ids =[2,4]
+
+# d =  add_characters_to_group(grou_id, character_ids)
+# print(d)
+
+
+
+
+
+# async def get_group_characters(group_id):
+#     query = """
+#     SELECT character_id FROM group_characters WHERE group_id = %s
+#     """
+
+#     try:
+#         connection = mysql.connector.connect(**db_config)
+        
+#         if connection.is_connected():
+#             cursor = connection.cursor()
+            
+#             cursor.execute(query, (group_id,))
+            
+#             result = cursor.fetchall()
+#             return [row[0] for row in result]
+
+#     except Error as e:
+#         print(f"Error: {e}")
+#         return None
+
+#     finally:
+#         if connection.is_connected():
+#             cursor.close()
+#             connection.close()
+# This should convert the database results to integers to ensure type consistency
+async def get_group_characters(group_id):
+    query = """
+    SELECT character_id FROM group_characters WHERE group_id = %s
+    """
+
+    try:
+        connection = mysql.connector.connect(**db_config)
+        
+        if connection.is_connected():
+            cursor = connection.cursor()
+            
+            cursor.execute(query, (group_id,))
+            
+            result = cursor.fetchall()
+            return [int(row[0]) for row in result]  # Convert to integers
+
+    except Error as e:
+        print(f"Error: {e}")
+        return []  # Return empty list instead of None
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+
+
+# group_id =1
+
+# d =  get_group_characters(group_id)
+# print(d)
