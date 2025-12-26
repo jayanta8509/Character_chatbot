@@ -824,5 +824,15 @@ async def serve_audio(filename):
     response.headers['Expires'] = '0'
     return response
 
+
+@quart_app.route('/', methods=['GET'])
+async def base_url():
+    return jsonify({
+        "status": "running",
+        "message": "Character Chatbot API is running",
+        "version": "1.0.0"
+    }), 200
+
+
 if __name__ == '__main__':
     quart_app.run(debug=True, port=8056)
